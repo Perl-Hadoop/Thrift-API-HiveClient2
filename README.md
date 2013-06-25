@@ -6,3 +6,5 @@ For now a very rough Perl to HiveServer2 API (as provided in Cloudera's Hadoop C
 Please read the in-file comments for HiveServer2 configuration details.
 
 (c) 2013 Booking.com & David Morel
+
+Hive Thrift interface definition files are (c) 2013 The Apache Software Foundation.
