@@ -172,11 +172,11 @@ Run an HiveQl statement on an open connection.
 
 =method fetch
 
-Returns an array(ref) of arrayrefs, like DBI's fetchall_arrayref.
+Returns an array(ref) of arrayrefs, like DBI's fetchall_arrayref, and a boolean
+indicator telling wether or not a subsequent call to fetch() will return more
+rows.
 
-    my $rv = $client->fetch( $rh, <maximum records to retrieve> );
-    or
-    my @rv = $client->fetch( $rh, <maximum records to retrieve> );
+    my ($rv, $has_more_rows) = $client->fetch( $rh, <maximum records to retrieve> );
 
 =cut
 
@@ -234,7 +234,7 @@ sub execute {
 
                 my $idx = 0;
                 push @$result,
-                    [ map { $row->{colVals}[ $idx++ ]{$_} } @{ $column_keys->{$rv} } ];
+                    [ map { $row->{colVals}[ $idx++ ]{$_}->value() } @{ $column_keys->{$rv} } ];
             }
         }
         return $result, $has_more_rows;
