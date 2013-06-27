@@ -85,9 +85,9 @@ sub BUILD {
 
 Initialize the client object with the Hive server parameters
 
-    my $client = Thrift::API::HiveClient2->new( 
-        <host name or IP, defaults to localhost>, 
-        <port, defaults to 10000>, 
+    my $client = Thrift::API::HiveClient2->new(
+        <host name or IP, defaults to localhost>,
+        <port, defaults to 10000>,
     );
 
 =cut
@@ -195,7 +195,7 @@ sub execute {
 {
     # cache the column names we need to extract from the bloated data structure
     # (keyed on query)
-    my $column_keys; 
+    my $column_keys;
 
     sub fetch {
         my $self = shift;
