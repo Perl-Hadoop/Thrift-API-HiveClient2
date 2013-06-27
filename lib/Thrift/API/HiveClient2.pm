@@ -3,22 +3,21 @@ use warnings;
 use Data::Dumper;
 use Storable ();
 
-# ABSTRACT: Perl <=> HiveServer2 API, a wrapper around auto-generated Thrift
-# files from the Hive project
+# ABSTRACT: Perl to HiveServer2 API
 
-# !!!!!!!!!!!!!!! MEGA WARNING !!!!!!!!!!!!!!!
-#
-# Thrift in Perl currently doesn't support SASL, so authentication needs
-# to be disabled for now on HiveServer2 by setting this property in your
-# /etc/hive/conf/hive-site.xml. Although the property is documented, this
-# *value* -which disables the SASL server transport- is not, AFAICT.
-#
-# <property>
-#  <name>hive.server2.authentication</name>
-#  <value>NOSASL</value>
-# </property>
-#
-# !!!!!!!!!!! END OF MEGA WARNING !!!!!!!!!!!!!
+=head1 Configuration warning
+
+Thrift in Perl currently doesn't support SASL, so authentication needs
+to be disabled for now on HiveServer2 by setting this property in your
+/etc/hive/conf/hive-site.xml. Although the property is documented, this
+*value* -which disables the SASL server transport- is not, AFAICT.
+
+  <property>
+    <name>hive.server2.authentication</name>
+    <value>NOSASL</value>
+  </property>
+
+=cut
 
 package Thrift::API::HiveClient2;
 
@@ -82,6 +81,17 @@ sub BUILD {
         unless $self->_client;
 }
 
+=method new
+
+Initialize the client object with the Hive server parameters
+
+    my $client = Thrift::API::HiveClient2->new( 
+        <host name or IP, defaults to localhost>, 
+        <port, defaults to 10000>, 
+    );
+
+=cut
+
 sub _init_protocol {
     my $self = shift;
     my $err;
@@ -97,6 +107,14 @@ sub _init_protocol {
     # TODO Add warning when XS was asked but failed to load
     return $protocol;
 }
+
+=method connect
+
+Open the connection on the server declared in the object's constructor.
+
+     $client->connect() or die "Failed to connect";
+
+=cut
 
 sub connect {
     my ($self) = @_;
@@ -147,6 +165,22 @@ sub _build_session_handle {
     my $self = shift;
     return $self->_session->{sessionHandle};
 }
+
+=method execute
+
+Run an HiveQl statement on an open connection.
+
+    my $rh = $client->execute( <HiveQL statement> );
+
+=method fetch
+
+Returns an array(ref) of arrayrefs, like DBI's fetchall_arrayref.
+
+    my $rv = $client->fetch( $rh, <maximum records to retrieve> );
+    or
+    my @rv = $client->fetch( $rh, <maximum records to retrieve> );
+
+=cut
 
 sub execute {
     my $self = shift;
