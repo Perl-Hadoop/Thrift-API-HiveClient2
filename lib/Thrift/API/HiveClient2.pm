@@ -1,11 +1,7 @@
-use strict;
-use warnings;
-use Data::Dumper;
-use Storable ();
+package Thrift::API::HiveClient2;
+# ABSTRACT: Perl to HiveServer2 Thrift API wrapper
 
-# ABSTRACT: Perl to HiveServer2 API
-
-=head1 Configuration warning
+=head1 WARNING
 
 Thrift in Perl currently doesn't support SASL, so authentication needs
 to be disabled for now on HiveServer2 by setting this property in your
@@ -19,12 +15,8 @@ to be disabled for now on HiveServer2 by setting this property in your
 
 =cut
 
-package Thrift::API::HiveClient2;
-
-{
-    $Thrift::API::HiveClient2::VERSION = '0.001';
-    $Thrift::API::HiveClient2::DIST    = 'Thrift-API-HiveClient2';
-}
+use strict;
+use warnings;
 
 use Moo;
 use Carp;
@@ -45,8 +37,14 @@ has use_xs => (
     lazy    => 1,
 );
 
-has host => ( is => 'ro' );
-has port => ( is => 'ro' );
+has host => (
+    is      => 'ro',
+    default => sub {'localhost'},
+);
+has port => (
+    is      => 'ro',
+    default => sub {10_000},
+);
 
 # These exist to make testing with various other Thrift Implementation classes
 # easier, eventually.
@@ -272,11 +270,4 @@ sub AUTOLOAD {
 
 1;
 
-=head1 COPYRIGHT
-
-Portions copied from Thrift::API::HiveClient are (c) 2012 by Stephen R. Scaffidi.
-
-(c) David Morel 2013
-
-(c) Booking.com 2013
 

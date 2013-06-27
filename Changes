@@ -5,3 +5,8 @@ Revision history for Thrift-API-HiveClient2
 
 0.002   2013-06-25
         Fixed forgotten Thrift dependency
+
+0.003   2013-06-27
+        Added some docs, fixed licence
+        Removed tempfiles from the package
+        Set defaults for host and port
