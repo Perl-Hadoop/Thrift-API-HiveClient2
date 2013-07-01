@@ -14,3 +14,6 @@ Revision history for Thrift-API-HiveClient2
 0.004   2013-06-27
         Fixed fetch() output
         Made sure code and pod tell the same story
+
+0.005   2013-06-28
+        Fixed missing Class::Accessor dep
