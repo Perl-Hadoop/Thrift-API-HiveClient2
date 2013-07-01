@@ -6,8 +6,6 @@ use Test::More;
 
 plan tests => 1;
 
-BEGIN {
-    use_ok( 'Thrift::API::HiveClient2' ) || print "Bail out!\n";
-}
+use_ok( 'Thrift::API::HiveClient2' ) || print "Bail out!\n";
 
 diag( "Testing Thrift::API::HiveClient2 $Thrift::API::HiveClient2::VERSION, Perl $], $^X" );
