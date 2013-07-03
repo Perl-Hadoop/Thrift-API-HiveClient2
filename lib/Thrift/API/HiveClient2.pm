@@ -84,8 +84,8 @@ sub BUILD {
 Initialize the client object with the Hive server parameters
 
     my $client = Thrift::API::HiveClient2->new(
-        <host name or IP, defaults to localhost>,
-        <port, defaults to 10000>,
+        host => <host name or IP, defaults to localhost>,
+        port => <port, defaults to 10000>,
     );
 
 =cut
