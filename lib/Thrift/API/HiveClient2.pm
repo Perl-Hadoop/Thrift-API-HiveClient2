@@ -46,6 +46,16 @@ has port => (
     default => sub {10_000},
 );
 
+# 1 hour default recv socket timeout. Increase for longer-running queries
+# called "timeout" for simplicity's sake, as this is how a user will experience
+# it: a time after which the Thrift stack will throw an exception if not
+# getting an answer from the server
+
+has timeout => (
+    is      => 'rw',
+    default => sub { 3_600 },
+);
+
 # These exist to make testing with various other Thrift Implementation classes
 # easier, eventually.
 
@@ -84,8 +94,9 @@ sub BUILD {
 Initialize the client object with the Hive server parameters
 
     my $client = Thrift::API::HiveClient2->new(
-        host => <host name or IP, defaults to localhost>,
-        port => <port, defaults to 10000>,
+        host    => <host name or IP, defaults to localhost>,
+        port    => <port, defaults to 10000>,
+        timeout => <seconds timeout, defaults to 1 hour>,
     );
 
 =cut
@@ -116,6 +127,7 @@ Open the connection on the server declared in the object's constructor.
 
 sub connect {
     my ($self) = @_;
+    $self->_socket->setRecvTimeout($self->timeout * 1000);
     $self->_transport->open;
 }
 
