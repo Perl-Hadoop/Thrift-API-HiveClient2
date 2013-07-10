@@ -183,11 +183,15 @@ rows.
 sub execute {
     my $self = shift;
     my ($query) = @_;    # make this a bit more flexible
-    return $self->_client->ExecuteStatement(
+    my $rh = $self->_client->ExecuteStatement(
         Thrift::API::HiveClient2::TExecuteStatementReq->new(
             { sessionHandle => $self->_session_handle, statement => $query }
         )
     );
+    if ($rh->{status}{errorCode}) {
+        die "execute() failed: $rh->{errorMessage} (code: $rh->{errorCode})";
+    }
+    return $rh;
 }
 
 {
