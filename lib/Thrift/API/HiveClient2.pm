@@ -201,7 +201,7 @@ sub execute {
         )
     );
     if ($rh->{status}{errorCode}) {
-        die "execute() failed: $rh->{errorMessage} (code: $rh->{errorCode})";
+        die "execute() failed: $rh->{status}{errorMessage} (code: $rh->{status}{errorCode})";
     }
     return $rh;
 }
