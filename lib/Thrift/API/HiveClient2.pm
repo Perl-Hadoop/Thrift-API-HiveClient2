@@ -203,6 +203,8 @@ retrieving the data):
         # ... do something with @$rv
     }
 
+This is the approach adopted in L<https://github.com/cloudera/hue/blob/master/apps/beeswax/src/beeswax/server/hive_server2_lib.py>
+
 =cut
 
 sub execute {
