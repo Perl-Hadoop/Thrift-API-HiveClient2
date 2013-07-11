@@ -190,6 +190,19 @@ rows.
 
     my ($rv, $has_more_rows) = $client->fetch( $rh, <maximum records to retrieve> );
 
+IMPORTANT: The version of HiveServer2 that we use for testing is the one
+bundled with CDH 4.2.1. The hasMoreRows method is currently broken, and always
+returns false. So the right way of obtaining the resultset is to keep using
+fetch() until it returns an empty array. For this reason the behaviour of fetch
+has been altered in scalar context (which becomes the current advised way of
+retrieving the data):
+
+    # $rv will be an arrayref is anything was fetched, and undef otherwise.
+    #
+    while (my $rv = $client->fetch( $rh, <maximum records to retrieve> )) {
+        # ... do something with @$rv
+    }
+
 =cut
 
 sub execute {
@@ -224,7 +237,10 @@ sub execute {
             )
         );
         if ( ref $rh eq 'Thrift::API::HiveClient2::TFetchResultsResp' ) {
-            $has_more_rows = $rh->{hasMoreRows};
+
+            # NOTE that currently (july 2013) the hasMoreRows method is broken,
+            # see the explanation in the POD
+            $has_more_rows = $rh->hasMoreRows();
 
             for my $row ( @{ $rh->{results}{rows} || [] } ) {
 
@@ -253,7 +269,7 @@ sub execute {
                     [ map { $row->{colVals}[ $idx++ ]{$_}->value() } @{ $column_keys->{$rv} } ];
             }
         }
-        return $result, $has_more_rows;
+        return wantarray ? ( $result, $has_more_rows ) : ( @$result ? $result : undef );
     }
 }
 
