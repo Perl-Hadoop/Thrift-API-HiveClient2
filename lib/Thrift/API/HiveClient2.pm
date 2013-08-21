@@ -302,6 +302,16 @@ sub AUTOLOAD {
     croak "No such method exists: $AUTOLOAD";
 }
 
+=head1 CAVEATS
+
+The instance of hiveserver2 we have didn't return results encoded in UTF8, for
+the reason mentioned here: L<https://groups.google.com/a/cloudera.org/d/msg/cdh-user/AXeEuaFP0Ro/Txmn1OHleAsJ>
+
+So we had to change the init script for hive-server2 to make it behave, adding
+'-Dfile.encoding=UTF-8' to HADOOP_OPTS
+
+=cut
+
 1;
 
 
