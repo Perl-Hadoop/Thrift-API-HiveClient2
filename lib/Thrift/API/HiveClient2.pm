@@ -212,7 +212,7 @@ sub execute {
     my ($query) = @_;    # make this a bit more flexible
     my $rh = $self->_client->ExecuteStatement(
         Thrift::API::HiveClient2::TExecuteStatementReq->new(
-            { sessionHandle => $self->_session_handle, statement => $query }
+            { sessionHandle => $self->_session_handle, statement => $query, confOverlay => {} }
         )
     );
     if ($rh->{status}{errorCode}) {
