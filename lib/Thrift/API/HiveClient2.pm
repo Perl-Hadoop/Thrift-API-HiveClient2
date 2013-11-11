@@ -133,21 +133,21 @@ sub connect {
 
 has _session => (
     is      => 'rwp',
-    isa     => sub { 'Thrift::API::HiveClient2::TOpenSessionResp' },
+    isa     => sub {
+        die "Session isn't a Thrift::API::HiveClient2::TOpenSessionResp"
+            if !$_[0]->isa('Thrift::API::HiveClient2::TOpenSessionResp') },
     lazy    => 1,
     builder => '_build_session',
 );
 
 has username => (
     is      => 'rwp',
-    isa     => sub {'Str'},
     lazy    => 1,
     default => sub {'foo'},
 );
 
 has password => (
     is      => 'rwp',
-    isa     => sub {'Str'},
     lazy    => 1,
     default => sub {''},
 );
@@ -166,7 +166,9 @@ sub _build_session {
 
 has _session_handle => (
     is      => 'rwp',
-    isa     => sub {'Thrift::API::HiveClient2::TSessionHandle'},
+    isa     => sub {
+        die "Session handle isn't a Thrift::API::HiveClient2::TSessionHandle"
+            if !$_[0]->isa('Thrift::API::HiveClient2::TSessionHandle') },
     lazy    => 1,
     builder => '_build_session_handle',
 );
@@ -174,6 +176,40 @@ has _session_handle => (
 sub _build_session_handle {
     my $self = shift;
     return $self->_session->{sessionHandle};
+}
+
+has _operation => (
+    is => "rwp",
+    isa     => sub {
+        die "Operation isn't a Thrift::API::HiveClient2::TExecuteStatementResp"
+            if defined $_[0] && !$_[0]->isa('Thrift::API::HiveClient2::TExecuteStatementResp') },
+    lazy    => 1,
+);
+
+has _operation_handle => (
+    is => 'rwp',
+    isa => sub {
+        die
+            "Operation handle isn't a Thrift::API::HiveClient2::TOperationHandle"
+            if defined $_[0] && !$_[0]->isa('Thrift::API::HiveClient2::TOperationHandle');
+    },
+    lazy    => 1,
+);
+
+sub _cleanup_previous_operation {
+    my $self = shift;
+
+    # We seeem to have some memory leaks in the Hive server, let's try freeing the
+    # operation handle explicitely
+    if ( $self->_operation_handle ) {
+        $self->_client->CloseOperation(
+             Thrift::API::HiveClient2::TCloseOperationReq->new(
+                 { operationHandle => $self->_operation_handle, }
+             )
+        );
+        $self->_set__operation(undef);
+        $self->_set__operation_handle(undef);
+    }
 }
 
 =method execute
@@ -205,11 +241,22 @@ retrieving the data):
 
 This is the approach adopted in L<https://github.com/cloudera/hue/blob/master/apps/beeswax/src/beeswax/server/hive_server2_lib.py>
 
+Starting with version 0.12, we cache the operation handle and don't need it as a
+first parameter for the fetch() call. We want to be backward-compatible though,
+so depending on the type of the first parameter, we'll ignore it (since we
+cached it in the object and we can get it from there) or we'll use it as the
+number of rows to be retrieved if it looks like a positive integer:
+
+     my $rv = $client->fetch( 10_000 );
+
 =cut
 
 sub execute {
     my $self = shift;
     my ($query) = @_;    # make this a bit more flexible
+
+    $self->_cleanup_previous_operation;
+
     my $rh = $self->_client->ExecuteStatement(
         Thrift::API::HiveClient2::TExecuteStatementReq->new(
             { sessionHandle => $self->_session_handle, statement => $query, confOverlay => {} }
@@ -218,6 +265,8 @@ sub execute {
     if ($rh->{status}{errorCode}) {
         die "execute() failed: $rh->{status}{errorMessage} (code: $rh->{status}{errorCode})";
     }
+    $self->_set__operation($rh);
+    $self->_set__operation_handle($rh->{operationHandle});
     return $rh;
 }
 
@@ -229,11 +278,19 @@ sub execute {
     sub fetch {
         my $self = shift;
         my ( $rv, $rows_at_a_time ) = @_;
+
+        # if $rv looks like a number, use it instead of $rows_at_a_time
+        $rows_at_a_time = $rv if !$rows_at_a_time && $rv =~ /^[1-9][0-9]*$/;
+
         my $result = [];
         my $has_more_rows;
+
+        # NOTE we don't use $rv now, maybe we should leave that possibility open
+        # for parallel queries, but that woudl need a lot more testing. Patches
+        # welcome.
         my $rh = $self->_client->FetchResults(
             Thrift::API::HiveClient2::TFetchResultsReq->new(
-                {   operationHandle => $rv->{operationHandle},
+                {   operationHandle => $self->_operation_handle,
                     maxRows         => $rows_at_a_time || 10_000
                 }
             )
@@ -277,12 +334,16 @@ sub execute {
 
 sub DEMOLISH {
     my $self = shift;
-    return if !$self->_session_handle;
-    $self->_client->CloseSession(
-        Thrift::API::HiveClient2::TCloseSessionReq->new(
-            { sessionHandle => $self->_session_handle, }
-        )
-    );
+
+    $self->_cleanup_previous_operation;
+
+    if ( $self->_session_handle ) {
+        $self->_client->CloseSession(
+            Thrift::API::HiveClient2::TCloseSessionReq->new(
+                { sessionHandle => $self->_session_handle, }
+            )
+        );
+    }
     $self->_transport->close;
 }
 
