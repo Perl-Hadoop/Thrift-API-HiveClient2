@@ -325,7 +325,12 @@ sub execute {
 
                 my $idx = 0;
                 push @$result,
-                    [ map { $row->{colVals}[ $idx++ ]{$_}->value() } @{ $column_keys->{$rv} } ];
+                    [
+                        map  { $_->value  }
+                        grep { defined $_ }
+                        map  { $row->{colVals}[ $idx++ ]{$_} }
+                        @{ $column_keys->{$rv} }
+                    ];
             }
         }
         return wantarray ? ( $result, $has_more_rows ) : ( @$result ? $result : undef );
