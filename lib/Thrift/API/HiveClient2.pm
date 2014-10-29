@@ -37,6 +37,10 @@ has port => (
     is      => 'ro',
     default => sub {10_000},
 );
+has sasl => (
+    is      => 'ro',
+    default => 0,
+);
 
 # 1 hour default recv socket timeout. Increase for longer-running queries
 # called "timeout" for simplicity's sake, as this is how a user will experience
@@ -51,10 +55,11 @@ has timeout => (
 # These exist to make testing with various other Thrift Implementation classes
 # easier, eventually.
 
-has _socket    => ( is => 'rwp' );
-has _transport => ( is => 'rwp' );
-has _protocol  => ( is => 'rwp' );
-has _client    => ( is => 'rwp' );
+has _socket    => ( is => 'rwp', lazy => 1 );
+has _transport => ( is => 'rwp', lazy => 1 );
+has _protocol  => ( is => 'rwp', lazy => 1 );
+has _client    => ( is => 'rwp', lazy => 1 );
+has _sasl      => ( is => 'rwp', lazy => 1 );
 
 # setters implied by the 'rwp' mode on the attrs above.
 
@@ -62,6 +67,19 @@ sub _set_socket    { $_[0]->{_socket}    = $_[1] }
 sub _set_transport { $_[0]->{_transport} = $_[1] }
 sub _set_protocol  { $_[0]->{_protocol}  = $_[1] }
 sub _set_client    { $_[0]->{_client}    = $_[1] }
+
+sub _set_sasl {
+    return if !$_[1];
+
+    require Authen::SASL;
+    require Authen::SASL::XS;
+    Authen::SASL->import('XS');
+
+    require Thrift::SASL::Transport;
+    Thrift::SASL::Transport->import;
+
+    $_[0]->{_sasl} = Authen::SASL->new( mechanism => 'GSSAPI' );
+}
 
 # after constructon is complete, initialize any attributes that
 # weren't set in the constructor.
@@ -71,8 +89,17 @@ sub BUILD {
     $self->_set_socket( Thrift::Socket->new( $self->host, $self->port ) )
         unless $self->_socket;
 
-    $self->_set_transport( Thrift::BufferedTransport->new( $self->_socket ) )
-        unless $self->_transport;
+    $self->_set_sasl(1) if ( $self->sasl && !$self->_sasl );
+
+    if ( !$self->_transport ) {
+        my $transport = Thrift::BufferedTransport->new( $self->_socket );
+        if ( $self->_sasl ) {
+            $self->_set_transport( Thrift::SASL::Transport->new( $transport, $self->_sasl ) );
+        }
+        else {
+            $self->_set_transport($transport);
+        }
+    }
 
     $self->_set_protocol( $self->_init_protocol( $self->_transport ) )
         unless $self->_protocol;
