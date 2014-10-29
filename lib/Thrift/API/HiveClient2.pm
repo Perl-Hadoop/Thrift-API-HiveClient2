@@ -1,19 +1,11 @@
 package Thrift::API::HiveClient2;
+{
+  $Thrift::API::HiveClient2::VERSION = '0.013';
+}
+{
+  $Thrift::API::HiveClient2::DIST = 'Thrift-API-HiveClient2';
+}
 # ABSTRACT: Perl to HiveServer2 Thrift API wrapper
-
-=head1 WARNING
-
-Thrift in Perl currently doesn't support SASL, so authentication needs
-to be disabled for now on HiveServer2 by setting this property in your
-/etc/hive/conf/hive-site.xml. Although the property is documented, this
-*value* -which disables the SASL server transport- is not, AFAICT.
-
-  <property>
-    <name>hive.server2.authentication</name>
-    <value>NOSASL</value>
-  </property>
-
-=cut
 
 use strict;
 use warnings;
@@ -89,17 +81,6 @@ sub BUILD {
         unless $self->_client;
 }
 
-=method new
-
-Initialize the client object with the Hive server parameters
-
-    my $client = Thrift::API::HiveClient2->new(
-        host    => <host name or IP, defaults to localhost>,
-        port    => <port, defaults to 10000>,
-        timeout => <seconds timeout, defaults to 1 hour>,
-    );
-
-=cut
 
 sub _init_protocol {
     my $self = shift;
@@ -117,13 +98,6 @@ sub _init_protocol {
     return $protocol;
 }
 
-=method connect
-
-Open the connection on the server declared in the object's constructor.
-
-     $client->connect() or die "Failed to connect";
-
-=cut
 
 sub connect {
     my ($self) = @_;
@@ -212,44 +186,6 @@ sub _cleanup_previous_operation {
     }
 }
 
-=method execute
-
-Run an HiveQl statement on an open connection.
-
-    my $rh = $client->execute( <HiveQL statement> );
-
-=method fetch
-
-Returns an array(ref) of arrayrefs, like DBI's fetchall_arrayref, and a boolean
-indicator telling wether or not a subsequent call to fetch() will return more
-rows.
-
-    my ($rv, $has_more_rows) = $client->fetch( $rh, <maximum records to retrieve> );
-
-IMPORTANT: The version of HiveServer2 that we use for testing is the one
-bundled with CDH 4.2.1. The hasMoreRows method is currently broken, and always
-returns false. So the right way of obtaining the resultset is to keep using
-fetch() until it returns an empty array. For this reason the behaviour of fetch
-has been altered in scalar context (which becomes the current advised way of
-retrieving the data):
-
-    # $rv will be an arrayref is anything was fetched, and undef otherwise.
-    #
-    while (my $rv = $client->fetch( $rh, <maximum records to retrieve> )) {
-        # ... do something with @$rv
-    }
-
-This is the approach adopted in L<https://github.com/cloudera/hue/blob/master/apps/beeswax/src/beeswax/server/hive_server2_lib.py>
-
-Starting with version 0.12, we cache the operation handle and don't need it as a
-first parameter for the fetch() call. We want to be backward-compatible though,
-so depending on the type of the first parameter, we'll ignore it (since we
-cached it in the object and we can get it from there) or we'll use it as the
-number of rows to be retrieved if it looks like a positive integer:
-
-     my $rv = $client->fetch( 10_000 );
-
-=cut
 
 sub execute {
     my $self = shift;
@@ -368,6 +304,88 @@ sub AUTOLOAD {
     croak "No such method exists: $AUTOLOAD";
 }
 
+
+1;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+Thrift::API::HiveClient2 - Perl to HiveServer2 Thrift API wrapper
+
+=head1 VERSION
+
+version 0.013
+
+=head1 METHODS
+
+=head2 new
+
+Initialize the client object with the Hive server parameters
+
+    my $client = Thrift::API::HiveClient2->new(
+        host    => <host name or IP, defaults to localhost>,
+        port    => <port, defaults to 10000>,
+        timeout => <seconds timeout, defaults to 1 hour>,
+    );
+
+=head2 connect
+
+Open the connection on the server declared in the object's constructor.
+
+     $client->connect() or die "Failed to connect";
+
+=head2 execute
+
+Run an HiveQl statement on an open connection.
+
+    my $rh = $client->execute( <HiveQL statement> );
+
+=head2 fetch
+
+Returns an array(ref) of arrayrefs, like DBI's fetchall_arrayref, and a boolean
+indicator telling wether or not a subsequent call to fetch() will return more
+rows.
+
+    my ($rv, $has_more_rows) = $client->fetch( $rh, <maximum records to retrieve> );
+
+IMPORTANT: The version of HiveServer2 that we use for testing is the one
+bundled with CDH 4.2.1. The hasMoreRows method is currently broken, and always
+returns false. So the right way of obtaining the resultset is to keep using
+fetch() until it returns an empty array. For this reason the behaviour of fetch
+has been altered in scalar context (which becomes the current advised way of
+retrieving the data):
+
+    # $rv will be an arrayref is anything was fetched, and undef otherwise.
+    #
+    while (my $rv = $client->fetch( $rh, <maximum records to retrieve> )) {
+        # ... do something with @$rv
+    }
+
+This is the approach adopted in L<https://github.com/cloudera/hue/blob/master/apps/beeswax/src/beeswax/server/hive_server2_lib.py>
+
+Starting with version 0.12, we cache the operation handle and don't need it as a
+first parameter for the fetch() call. We want to be backward-compatible though,
+so depending on the type of the first parameter, we'll ignore it (since we
+cached it in the object and we can get it from there) or we'll use it as the
+number of rows to be retrieved if it looks like a positive integer:
+
+     my $rv = $client->fetch( 10_000 );
+
+=head1 WARNING
+
+Thrift in Perl currently doesn't support SASL, so authentication needs
+to be disabled for now on HiveServer2 by setting this property in your
+/etc/hive/conf/hive-site.xml. Although the property is documented, this
+*value* -which disables the SASL server transport- is not, AFAICT.
+
+  <property>
+    <name>hive.server2.authentication</name>
+    <value>NOSASL</value>
+  </property>
+
 =head1 CAVEATS
 
 The instance of hiveserver2 we have didn't return results encoded in UTF8, for
@@ -376,8 +394,16 @@ the reason mentioned here: L<https://groups.google.com/a/cloudera.org/d/msg/cdh-
 So we had to change the init script for hive-server2 to make it behave, adding
 '-Dfile.encoding=UTF-8' to HADOOP_OPTS
 
+=head1 AUTHOR
+
+David Morel <david.morel@amakuru.net>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by David Morel & Booking.com. Portions are (c) R.Scaffidi, Thrift files are (c) Apache Software Foundation..
+
+This is free software, licensed under:
+
+  The Apache License, Version 2.0, January 2004
+
 =cut
-
-1;
-
-
