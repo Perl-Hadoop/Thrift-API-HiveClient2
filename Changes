@@ -34,6 +34,10 @@ Revision history for Thrift-API-HiveClient2
 0.010   2013-07-11
         Fixed fetch() behaviour due to hasMoreRows bug
 
-0.011   2013-08-21
+0.011
+0.012   2013-08-21
         Fixed CDH 4.3.0 bug (thanks to Stephen Sprague and Oleksiy Kovyrin)
         Added UTF-8 configuration comments
+
+0.013   2014-02-10
+        Fixed If hive returns errors, the values can be undef (Burak Gürsoy)
