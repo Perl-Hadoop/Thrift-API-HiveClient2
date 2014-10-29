@@ -1,10 +1,5 @@
 package Thrift::API::HiveClient2;
-{
-  $Thrift::API::HiveClient2::VERSION = '0.014';
-}
-{
-  $Thrift::API::HiveClient2::DIST = 'Thrift-API-HiveClient2';
-}
+
 # ABSTRACT: Perl to HiveServer2 Thrift API wrapper
 
 use strict;
@@ -338,13 +333,6 @@ __END__
 
 =pod
 
-=head1 NAME
-
-Thrift::API::HiveClient2 - Perl to HiveServer2 Thrift API wrapper
-
-=head1 VERSION
-
-version 0.014
 
 =head1 METHODS
 
@@ -426,21 +414,9 @@ the reason mentioned here: L<https://groups.google.com/a/cloudera.org/d/msg/cdh-
 So we had to change the init script for hive-server2 to make it behave, adding
 '-Dfile.encoding=UTF-8' to HADOOP_OPTS
 
-=head1 AUTHOR
-
-David Morel <david.morel@amakuru.net>
-
 =head1 CONTRIBUTORS
 
 Burak Gürsoy (BURAK)
-
-=head1 COPYRIGHT AND LICENSE
-
-This software is Copyright (c) 2013 by David Morel & Booking.com. Portions are (c) R.Scaffidi, Thrift files are (c) Apache Software Foundation..
-
-This is free software, licensed under:
-
-  The Apache License, Version 2.0, January 2004
 
 =cut
 
