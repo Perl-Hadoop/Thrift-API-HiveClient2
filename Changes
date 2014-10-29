@@ -41,3 +41,6 @@ Revision history for Thrift-API-HiveClient2
 
 0.013   2014-02-10
         Fixed If hive returns errors, the values can be undef (Burak Gürsoy)
+
+0.014   2014-10-29
+        Added Kerberos support
