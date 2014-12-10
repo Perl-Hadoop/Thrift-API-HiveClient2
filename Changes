@@ -44,3 +44,7 @@ Revision history for Thrift-API-HiveClient2
 
 0.014   2014-10-29
         Added Kerberos support
+
+0.015   2014-12-10
+        Other SASL mechanisms can be used, passed directly to the
+        Authen::SASL object
