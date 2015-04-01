@@ -7,6 +7,7 @@ use warnings;
 
 use Moo;
 use Carp;
+use Scalar::Util qw( blessed );
 
 use Thrift;
 use Thrift::Socket;
@@ -131,7 +132,7 @@ has _session => (
     is      => 'rwp',
     isa     => sub {
         die "Session isn't a Thrift::API::HiveClient2::TOpenSessionResp"
-            if !$_[0]->isa('Thrift::API::HiveClient2::TOpenSessionResp') },
+            if ! blessed($_[0]) || !$_[0]->isa('Thrift::API::HiveClient2::TOpenSessionResp') },
     lazy    => 1,
     builder => '_build_session',
 );
@@ -164,7 +165,7 @@ has _session_handle => (
     is      => 'rwp',
     isa     => sub {
         die "Session handle isn't a Thrift::API::HiveClient2::TSessionHandle"
-            if !$_[0]->isa('Thrift::API::HiveClient2::TSessionHandle') },
+            if ! blessed($_[0]) || !$_[0]->isa('Thrift::API::HiveClient2::TSessionHandle') },
     lazy    => 1,
     builder => '_build_session_handle',
 );
@@ -178,7 +179,7 @@ has _operation => (
     is => "rwp",
     isa     => sub {
         die "Operation isn't a Thrift::API::HiveClient2::TExecuteStatementResp"
-            if defined $_[0] && !$_[0]->isa('Thrift::API::HiveClient2::TExecuteStatementResp') },
+            if defined $_[0] && ( ! blessed($_[0]) || !$_[0]->isa('Thrift::API::HiveClient2::TExecuteStatementResp') ) },
     lazy    => 1,
 );
 
@@ -187,7 +188,7 @@ has _operation_handle => (
     isa => sub {
         die
             "Operation handle isn't a Thrift::API::HiveClient2::TOperationHandle"
-            if defined $_[0] && !$_[0]->isa('Thrift::API::HiveClient2::TOperationHandle');
+            if defined $_[0] && ( ! blessed($_[0]) || !$_[0]->isa('Thrift::API::HiveClient2::TOperationHandle') );
     },
     lazy    => 1,
 );
