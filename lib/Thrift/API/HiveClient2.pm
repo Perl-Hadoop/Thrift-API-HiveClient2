@@ -72,9 +72,9 @@ sub _set_sasl {
     my ($self, $sasl) = @_;
     return if !$sasl;
 
+    # This normally selects XS first (hopefully)
     require Authen::SASL;
-    require Authen::SASL::XS;
-    Authen::SASL->import('XS');
+    Authen::SASL->import;
 
     require Thrift::SASL::Transport;
     Thrift::SASL::Transport->import;
@@ -83,7 +83,7 @@ sub _set_sasl {
         return $self->{_sasl} = Authen::SASL->new( mechanism => 'GSSAPI' );
     }
     elsif (reftype $sasl eq "HASH") {
-        return $self->{_sasl} = Authen::SASL->new( %$sasl );
+        return $self->{_sasl} = Authen::SASL->new( %$sasl ); #, debug => 8 );
     }
     die "Incorrect parameter passed to _set_sasl";
 }
@@ -151,7 +151,7 @@ has _session => (
 has username => (
     is      => 'rwp',
     lazy    => 1,
-    default => sub {'foo'},
+    default => sub { $ENV{USER} },
 );
 
 has password => (
