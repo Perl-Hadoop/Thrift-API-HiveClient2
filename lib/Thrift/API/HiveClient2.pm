@@ -424,8 +424,8 @@ Authen::SASL, for instance:
     {
       mechanism  => 'PLAIN',
       callback   => {
-        user     => $USER,
-        password => "foobar",
+        canonuser => $USER, # not 'user', as I thought reading Authen::SASL's doc
+        password  => "foobar",
       }
     }
 
