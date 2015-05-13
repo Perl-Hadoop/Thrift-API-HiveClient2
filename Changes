@@ -51,3 +51,8 @@ Revision history for Thrift-API-HiveClient2
 
 0.016   2014-12-10
         PruneCruft didn't remove the files in the build dir, fixing that
+
+0.017   2015-05-14
+        Merged burak's 45a06bba - Guard isa() checks with blessed().
+        Tiny doc fix re/ SASL+PLAIN: canonuser, not user
+
