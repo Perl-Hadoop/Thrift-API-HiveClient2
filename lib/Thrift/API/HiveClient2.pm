@@ -7,11 +7,7 @@ use warnings;
 
 use Moo;
 use Carp;
-<<<<<<< HEAD
-use Scalar::Util qw( blessed );
-=======
-use Scalar::Util 'reftype';
->>>>>>> Accept other authentication methods
+use Scalar::Util qw( reftype blessed );
 
 use Thrift;
 use Thrift::Socket;
