@@ -56,3 +56,6 @@ Revision history for Thrift-API-HiveClient2
         Merged burak's 45a06bba - Guard isa() checks with blessed().
         Tiny doc fix re/ SASL+PLAIN: canonuser, not user
 
+0.018   2015-09-30
+        Added get_columns method, giving complete info on a table's columns
+        
