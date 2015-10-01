@@ -58,4 +58,6 @@ Revision history for Thrift-API-HiveClient2
 
 0.018   2015-09-30
         Added get_columns method, giving complete info on a table's columns
-        
+
+0.019   2015-10-01
+        Added get_tables method, outputs a list of tables with some details
