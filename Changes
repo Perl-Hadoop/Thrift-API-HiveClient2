@@ -61,3 +61,4 @@ Revision history for Thrift-API-HiveClient2
 
 0.019   2015-10-01
         Added get_tables method, outputs a list of tables with some details
+        Added fetch_hashref, which returns a resultset keyed on column names
