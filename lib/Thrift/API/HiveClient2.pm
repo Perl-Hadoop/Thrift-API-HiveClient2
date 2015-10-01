@@ -4,10 +4,10 @@ package Thrift::API::HiveClient2;
 
 use strict;
 use warnings;
-
 use Moo;
 use Carp;
 use Scalar::Util qw( reftype blessed );
+use List::MoreUtils 'zip';
 
 use Thrift;
 use Thrift::Socket;
@@ -276,11 +276,17 @@ sub execute {
 {
     # cache the column names we need to extract from the bloated data structure
     # (keyed on query)
-    my $column_keys;
+    my ($column_keys, $column_names);
+
+    sub fetch_hashref {
+        my $self = shift;
+        my ( $rv, $rows_at_a_time ) = @_;
+        return $self->fetch($rv, $rows_at_a_time, 1);
+    }
 
     sub fetch {
         my $self = shift;
-        my ( $rv, $rows_at_a_time ) = @_;
+        my ( $rv, $rows_at_a_time, $use_hashref ) = @_;
 
         # if $rv looks like a number, use it instead of $rows_at_a_time
         $rows_at_a_time = $rv if !$rows_at_a_time && $rv =~ /^[1-9][0-9]*$/;
@@ -308,6 +314,20 @@ sub execute {
 
                 # Find which fields to extract from each row, only on the first iteration
                 if ( !@{ $column_keys->{ $rv } || [] } ) {
+
+                    # metadata for the query
+                    if ($use_hashref) {
+                        my $rh_meta = $self->_client->GetResultSetMetadata(
+                            Thrift::API::HiveClient2::TGetResultSetMetadataReq->new({
+                                operationHandle => $self->_operation_handle
+                            })
+                        );
+                        $column_names =
+                            [ map { $_->{columnName} } @{ $rh_meta->{schema}{columns} || [] } ];
+                    }
+
+                    # TODO redo all this using the TGetResultSetMetadataResp object we retrieved
+                    # above
                     for my $column ( @{ $row->{colVals} || [] } ) {
 
                         my $first_col = {%$column};
@@ -324,16 +344,21 @@ sub execute {
                     }
                 }
 
-                # TODO find something faster?
+                # TODO find something faster? (see comment above)
 
                 my $idx = 0;
-                push @$result,
-                    [
-                        map  { $_->value  }
+                my $retval = [
+                    map { $_->value }
                         grep { defined $_ }
-                        map  { $row->{colVals}[ $idx++ ]{$_} }
-                        @{ $column_keys->{$rv} }
-                    ];
+                            map  { $row->{colVals}[ $idx++ ]{$_} }
+                                @{ $column_keys->{$rv} }
+                ];
+                if ($use_hashref) {
+                    push @$result, { zip @$column_names, @$retval };
+                }
+                else {
+                    push @$result, $retval;
+                }
             }
         }
         return wantarray ? ( $result, $has_more_rows ) : ( @$result ? $result : undef );
@@ -511,6 +536,11 @@ we cached it in the object and we can get it from there) or we'll use it as the
 number of rows to be retrieved if it looks like a positive integer:
 
      my $rv = $client->fetch( 10_000 );
+
+=head2 fetch_hashref
+
+Same use as above, but result is returned as an arrayref of hashes (which keys are
+the column names)
 
 =head2 get_columns
 
