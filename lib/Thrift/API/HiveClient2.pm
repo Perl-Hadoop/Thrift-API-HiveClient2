@@ -39,6 +39,14 @@ my @odbc_coldesc_fields = qw(
     IS_NULLABLE
 );
 
+my @tabledesc_fields = qw(
+    TABLE_CAT
+    TABLE_SCHEM
+    TABLE_NAME
+    TABLE_TYPE
+    REMARKS
+    );
+
 # Don't use XS for now, fails initializing properly with BufferedTransport. See
 # Thrift::XS documentation.
 has use_xs => (
@@ -212,7 +220,8 @@ has _operation => (
             && (
             !blessed( $_[0] )
             || (   !$_[0]->isa('Thrift::API::HiveClient2::TExecuteStatementResp')
-                && !$_[0]->isa('Thrift::API::HiveClient2::TGetColumnsResp') )
+                && !$_[0]->isa('Thrift::API::HiveClient2::TGetColumnsResp')
+                && !$_[0]->isa('Thrift::API::HiveClient2::TGetTablesResp') )
             );
     },
     lazy => 1,
@@ -370,6 +379,44 @@ sub get_columns {
     return $columns;
 }
 
+sub get_tables {
+    my $self = shift;
+    my ( $schema, $table_pattern ) = @_;
+
+    # note that not specifying a table name would return all columns for all
+    # tables we probably don't want that, but feel free to change this
+    # behaviour. Same goes for the schema name: we probably want a default
+    # value for the schema, which is what we use here.
+    $schema //= "default";
+
+    $self->_cleanup_previous_operation;
+
+    my $rh = $self->_client->GetTables(
+        Thrift::API::HiveClient2::TGetTablesReq->new(
+            {
+                sessionHandle => $self->_session_handle,
+                catalogName   => undef,
+                schemaName    => $schema,
+                tableName     => $table_pattern,
+                confOverlay   => {},
+            }
+        )
+    );
+    if ( $rh->{status}{errorCode} ) {
+        die __PACKAGE__ . "::execute: $rh->{status}{errorMessage}";
+    }
+    $self->_set__operation($rh);
+    $self->_set__operation_handle( $rh->{operationHandle} );
+    my $tables;
+    while ( my $res = $self->fetch($rh) ) {
+        for my $line (@$res) {
+            my $idx = 0;
+            push @$tables, { map { $_ => $line->[ $idx++ ] } @tabledesc_fields };
+        }
+    }
+    return $tables;
+}
+
 sub DEMOLISH {
     my $self = shift;
 
@@ -468,9 +515,28 @@ number of rows to be retrieved if it looks like a positive integer:
 =head2 get_columns
 
 Get the columns description for a table, returned in an array of hashrefs which keys are named after the result of an
- ODBC GetColumns call. "default" is used for the schema name is none is specified as 2nd argument.
+ODBC GetColumns call. "default" is used for the schema name is none is specified as 2nd argument. The hashes keys
+documentation can be found on https://msdn.microsoft.com/en-us/library/ms711683(v=vs.85).aspx for instance.
 
     my $columns = $client->get_columns('<table name>'[, '<schema name>']);
+
+=head2 get_tables
+
+Get a list of tables. Optional table name pattern as a first argument (use undef or '%' to get all tables while
+defining a schema as a second argument), and optional schema second arg (default is "default")
+
+    my $tables = $client->get_tables(['<table pattern, SQL wildcards accepted>', ['<schema name>']]);
+
+Returns an arrayref of hashes:
+
+    [...
+    {
+        'REMARKS' => 'test comment', # table comment
+        'TABLE_NAME' => 'foo_bar',   # table name
+        'TABLE_SCHEM' => 'default',  # schema ("database")
+        'TABLE_TYPE' => 'TABLE',     # TABLE, VIEW, etc
+        'TABLE_CAT' => '',           # catalog (unused?)
+    }];
 
 =head1 WARNING
 
