@@ -66,3 +66,5 @@ Revision history for Thrift-API-HiveClient2
 0.020   2015-10-01
         Removed .iml file
         Updated build dep for rpmbuild and older perl versions
+        Added [GithubMeta] to dist.ini, so repo will appear in dist metadata
+        Added link to github repo in the doc

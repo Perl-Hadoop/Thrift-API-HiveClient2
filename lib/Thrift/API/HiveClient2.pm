@@ -610,6 +610,10 @@ L<https://groups.google.com/a/cloudera.org/d/msg/cdh-user/AXeEuaFP0Ro/Txmn1OHleA
 So we had to change the init script for hive-server2 to make it behave, adding
 '-Dfile.encoding=UTF-8' to HADOOP_OPTS
 
+=head1 REPOSITORY
+
+L<https://github.com/dmorel/Thrift-API-HiveClient2>
+
 =head1 CONTRIBUTORS
 
 Burak Gürsoy (BURAK)
