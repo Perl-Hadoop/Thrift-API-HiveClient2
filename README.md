@@ -8,8 +8,8 @@ Please read the in-file comments for HiveServer2 configuration details.
 Distribution is generated using Dist::Zilla. To create the tarball for this distribution, 
 run dzil build in the base directory.
 
-(c) 2013 Booking.com & David Morel.
+© 2013 Booking.com and David Morel.
 
-Some parts are (c) R.Scaffidi.
+Some parts are © R.Scaffidi.
 
-Hive Thrift interface files are (c) 2013 The Apache Software Foundation.
+Hive Thrift interface files are © 2013 The Apache Software Foundation.
