@@ -121,6 +121,7 @@ sub BUILD {
 
     $self->_set_socket( Thrift::Socket->new( $self->host, $self->port ) )
         unless $self->_socket;
+    $self->_socket->setRecvTimeout( $self->timeout * 1000 );
 
     $self->_set_sasl($self->sasl) if ( $self->sasl && !$self->_sasl );
 
@@ -161,7 +162,6 @@ sub _init_protocol {
 
 sub connect {
     my ($self) = @_;
-    $self->_socket->setRecvTimeout($self->timeout * 1000);
     $self->_transport->open;
 }
 
