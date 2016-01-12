@@ -45,7 +45,7 @@ my @tabledesc_fields = qw(
     TABLE_NAME
     TABLE_TYPE
     REMARKS
-    );
+);
 
 # Don't use XS for now, fails initializing properly with BufferedTransport. See
 # Thrift::XS documentation.
@@ -75,7 +75,7 @@ has sasl => (
 
 has timeout => (
     is      => 'rw',
-    default => sub { 3_600 },
+    default => sub {3_600},
 );
 
 # These exist to make testing with various other Thrift Implementation classes
@@ -95,7 +95,7 @@ sub _set_protocol  { $_[0]->{_protocol}  = $_[1] }
 sub _set_client    { $_[0]->{_client}    = $_[1] }
 
 sub _set_sasl {
-    my ($self, $sasl) = @_;
+    my ( $self, $sasl ) = @_;
     return if !$sasl;
 
     # This normally selects XS first (hopefully)
@@ -105,11 +105,11 @@ sub _set_sasl {
     require Thrift::SASL::Transport;
     Thrift::SASL::Transport->import;
 
-    if ($sasl == 1) {
+    if ( $sasl == 1 ) {
         return $self->{_sasl} = Authen::SASL->new( mechanism => 'GSSAPI' );
     }
-    elsif (reftype $sasl eq "HASH") {
-        return $self->{_sasl} = Authen::SASL->new( %$sasl ); #, debug => 8 );
+    elsif ( reftype $sasl eq "HASH" ) {
+        return $self->{_sasl} = Authen::SASL->new(%$sasl);    #, debug => 8 );
     }
     die "Incorrect parameter passed to _set_sasl";
 }
@@ -123,7 +123,7 @@ sub BUILD {
         unless $self->_socket;
     $self->_socket->setRecvTimeout( $self->timeout * 1000 );
 
-    $self->_set_sasl($self->sasl) if ( $self->sasl && !$self->_sasl );
+    $self->_set_sasl( $self->sasl ) if ( $self->sasl && !$self->_sasl );
 
     if ( !$self->_transport ) {
         my $transport = Thrift::BufferedTransport->new( $self->_socket );
@@ -142,7 +142,6 @@ sub BUILD {
         unless $self->_client;
 }
 
-
 sub _init_protocol {
     my $self = shift;
     my $err;
@@ -159,17 +158,17 @@ sub _init_protocol {
     return $protocol;
 }
 
-
 sub connect {
     my ($self) = @_;
     $self->_transport->open;
 }
 
 has _session => (
-    is      => 'rwp',
-    isa     => sub {
+    is  => 'rwp',
+    isa => sub {
         die "Session isn't a Thrift::API::HiveClient2::TOpenSessionResp"
-            if ! blessed($_[0]) || !$_[0]->isa('Thrift::API::HiveClient2::TOpenSessionResp') },
+            if !blessed( $_[0] ) || !$_[0]->isa('Thrift::API::HiveClient2::TOpenSessionResp');
+    },
     lazy    => 1,
     builder => '_build_session',
 );
@@ -199,10 +198,11 @@ sub _build_session {
 }
 
 has _session_handle => (
-    is      => 'rwp',
-    isa     => sub {
+    is  => 'rwp',
+    isa => sub {
         die "Session handle isn't a Thrift::API::HiveClient2::TSessionHandle"
-            if ! blessed($_[0]) || !$_[0]->isa('Thrift::API::HiveClient2::TSessionHandle') },
+            if !blessed( $_[0] ) || !$_[0]->isa('Thrift::API::HiveClient2::TSessionHandle');
+    },
     lazy    => 1,
     builder => '_build_session_handle',
 );
@@ -228,13 +228,14 @@ has _operation => (
 );
 
 has _operation_handle => (
-    is => 'rwp',
+    is  => 'rwp',
     isa => sub {
-        die
-            "Operation handle isn't a Thrift::API::HiveClient2::TOperationHandle"
-            if defined $_[0] && ( ! blessed($_[0]) || !$_[0]->isa('Thrift::API::HiveClient2::TOperationHandle') );
+        die "Operation handle isn't a Thrift::API::HiveClient2::TOperationHandle"
+            if defined $_[0]
+            && ( !blessed( $_[0] )
+            || !$_[0]->isa('Thrift::API::HiveClient2::TOperationHandle') );
     },
-    lazy    => 1,
+    lazy => 1,
 );
 
 sub _cleanup_previous_operation {
@@ -244,15 +245,14 @@ sub _cleanup_previous_operation {
     # operation handle explicitely
     if ( $self->_operation_handle ) {
         $self->_client->CloseOperation(
-             Thrift::API::HiveClient2::TCloseOperationReq->new(
-                 { operationHandle => $self->_operation_handle, }
-             )
+            Thrift::API::HiveClient2::TCloseOperationReq->new(
+                { operationHandle => $self->_operation_handle, }
+            )
         );
         $self->_set__operation(undef);
         $self->_set__operation_handle(undef);
     }
 }
-
 
 sub execute {
     my $self = shift;
@@ -265,23 +265,23 @@ sub execute {
             { sessionHandle => $self->_session_handle, statement => $query, confOverlay => {} }
         )
     );
-    if ($rh->{status}{errorCode}) {
+    if ( $rh->{status}{errorCode} ) {
         die __PACKAGE__ . "::execute: $rh->{status}{errorMessage}; HQL was: \"$query\"";
     }
     $self->_set__operation($rh);
-    $self->_set__operation_handle($rh->{operationHandle});
+    $self->_set__operation_handle( $rh->{operationHandle} );
     return $rh;
 }
 
 {
     # cache the column names we need to extract from the bloated data structure
     # (keyed on query)
-    my ($column_keys, $column_names);
+    my ( $column_keys, $column_names );
 
     sub fetch_hashref {
         my $self = shift;
         my ( $rv, $rows_at_a_time ) = @_;
-        return $self->fetch($rv, $rows_at_a_time, 1);
+        return $self->fetch( $rv, $rows_at_a_time, 1 );
     }
 
     sub fetch {
@@ -313,17 +313,17 @@ sub execute {
             for my $row ( @{ $rh->{results}{rows} || [] } ) {
 
                 # Find which fields to extract from each row, only on the first iteration
-                if ( !@{ $column_keys->{ $rv } || [] } ) {
+                if ( !@{ $column_keys->{$rv} || [] } ) {
 
                     # metadata for the query
                     if ($use_hashref) {
                         my $rh_meta = $self->_client->GetResultSetMetadata(
-                            Thrift::API::HiveClient2::TGetResultSetMetadataReq->new({
-                                operationHandle => $self->_operation_handle
-                            })
+                            Thrift::API::HiveClient2::TGetResultSetMetadataReq->new(
+                                { operationHandle => $self->_operation_handle }
+                            )
                         );
-                        $column_names =
-                            [ map { $_->{columnName} } @{ $rh_meta->{schema}{columns} || [] } ];
+                        $column_names = [ map { $_->{columnName} }
+                                @{ $rh_meta->{schema}{columns} || [] } ];
                     }
 
                     # TODO redo all this using the TGetResultSetMetadataResp object we retrieved
@@ -340,18 +340,18 @@ sub execute {
                         # NOTE this data structure smells of Java and friends from
                         # miles away. Dynamically typed languages don't really need
                         # the bloat.
-                        push @{ $column_keys->{$rv} }, grep { ref $first_col->{$_} } keys %$first_col;
+                        push @{ $column_keys->{$rv} },
+                            grep { ref $first_col->{$_} } keys %$first_col;
                     }
                 }
 
                 # TODO find something faster? (see comment above)
 
-                my $idx = 0;
+                my $idx    = 0;
                 my $retval = [
-                    map { $_->value }
-                        grep { defined $_ }
-                            map  { $row->{colVals}[ $idx++ ]{$_} }
-                                @{ $column_keys->{$rv} }
+                    map  { $_->value }
+                    grep { defined $_ }
+                    map  { $row->{colVals}[ $idx++ ]{$_} } @{ $column_keys->{$rv} }
                 ];
                 if ($use_hashref) {
                     push @$result, { zip @$column_names, @$retval };
@@ -418,8 +418,7 @@ sub get_tables {
 
     my $rh = $self->_client->GetTables(
         Thrift::API::HiveClient2::TGetTablesReq->new(
-            {
-                sessionHandle => $self->_session_handle,
+            {   sessionHandle => $self->_session_handle,
                 catalogName   => undef,
                 schemaName    => $schema,
                 tableName     => $table_pattern,
@@ -472,7 +471,6 @@ sub AUTOLOAD {
     }
     croak "No such method exists: $AUTOLOAD";
 }
-
 
 1;
 
