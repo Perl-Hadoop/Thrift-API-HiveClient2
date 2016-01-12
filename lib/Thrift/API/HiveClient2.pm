@@ -308,27 +308,32 @@ sub execute {
 
     sub fetch_hashref {
         my $self = shift;
-        my ( $rv, $rows_at_a_time ) = @_;
-        return $self->fetch( $rv, $rows_at_a_time, 1 );
+        my ( $rh, $rows_at_a_time ) = @_;
+        return $self->fetch( $rh, $rows_at_a_time, 1 );
     }
 
     sub fetch {
         my $self = shift;
-        my ( $rv, $rows_at_a_time, $use_hashref ) = @_;
+        my ( $rh, $rows_at_a_time, $use_hashref ) = @_;
 
-        # if $rv looks like a number, use it instead of $rows_at_a_time
-        $rows_at_a_time = $rv if !$rows_at_a_time && $rv =~ /^[1-9][0-9]*$/;
+        # if $rh looks like a number, use it instead of $rows_at_a_time
+        # it means we're using the new form for this call, which takes only the
+        # number of wanted rows, or even nothing (and relies on the defaults,
+        # and a cached copy of the query $rh)
+        $rows_at_a_time = $rh if ( $rh && !$rows_at_a_time && $rh =~ /^[1-9][0-9]*$/ );
+        $rows_at_a_time ||= 10_000;
 
         my $result = [];
         my $has_more_rows;
 
-        # NOTE we don't use $rv now, maybe we should leave that possibility open
-        # for parallel queries, but that woudl need a lot more testing. Patches
-        # welcome.
-        my $rh = $self->_client->FetchResults(
+        # NOTE we don't use the provided $rh any more, maybe we should leave
+        # that possibility open for parallel queries, but that would need a lot
+        # more testing. Patches welcome.
+        my $cached_rh = $self->_operation_handle;
+        $rh = $self->_client->FetchResults(
             Thrift::API::HiveClient2::TFetchResultsReq->new(
-                {   operationHandle => $self->_operation_handle,
-                    maxRows         => $rows_at_a_time || 10_000
+                {   operationHandle => $cached_rh,
+                    maxRows         => $rows_at_a_time,
                 }
             )
         );
@@ -341,13 +346,13 @@ sub execute {
             for my $row ( @{ $rh->{results}{rows} || [] } ) {
 
                 # Find which fields to extract from each row, only on the first iteration
-                if ( !@{ $column_keys->{$rv} || [] } ) {
+                if ( !@{ $column_keys->{$cached_rh} || [] } ) {
 
                     # metadata for the query
                     if ($use_hashref) {
                         my $rh_meta = $self->_client->GetResultSetMetadata(
                             Thrift::API::HiveClient2::TGetResultSetMetadataReq->new(
-                                { operationHandle => $self->_operation_handle }
+                                { operationHandle => $cached_rh }
                             )
                         );
                         $column_names = [ map { $_->{columnName} }
@@ -368,7 +373,7 @@ sub execute {
                         # NOTE this data structure smells of Java and friends from
                         # miles away. Dynamically typed languages don't really need
                         # the bloat.
-                        push @{ $column_keys->{$rv} },
+                        push @{ $column_keys->{$cached_rh} },
                             grep { ref $first_col->{$_} } keys %$first_col;
                     }
                 }
@@ -379,7 +384,7 @@ sub execute {
                 my $retval = [
                     map  { $_->value }
                     grep { defined $_ }
-                    map  { $row->{colVals}[ $idx++ ]{$_} } @{ $column_keys->{$rv} }
+                    map  { $row->{colVals}[ $idx++ ]{$_} } @{ $column_keys->{$cached_rh} }
                 ];
                 if ($use_hashref) {
                     push @$result, { zip @$column_names, @$retval };
