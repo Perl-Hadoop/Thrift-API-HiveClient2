@@ -63,8 +63,13 @@ Revision history for Thrift-API-HiveClient2
         Added get_tables method, outputs a list of tables with some details
         Added fetch_hashref, which returns a resultset keyed on column names
 
-0.020   2015-10-01
+0.020   2016-01-13
         Removed .iml file
         Updated build dep for rpmbuild and older perl versions
         Added [GithubMeta] to dist.ini, so repo will appear in dist metadata
         Added link to github repo in the doc
+        Moved socket timeout declaration
+        Fixed column names filling
+        Workaround for Thrift error messages (commented out, sigh)
+        Added POD as README.md
+
