@@ -106,7 +106,7 @@ disabled on HiveServer2 by setting this property in your
     </property>
 
 Starting with 0.014, support for secure clusters has been added thanks to
-Thrift::SASL::Transport. This behaviour is set by passing sasl => 1 to the
+[Thrift::SASL::Transport](https://metacpan.org/pod/Thrift::SASL::Transport). This behaviour is set by passing sasl => 1 to the
 constructor. It has been tested with hive.server2.authentication = KERBEROS.
 It of course requires a valid credentials cache (kinit) or keytab.
 
