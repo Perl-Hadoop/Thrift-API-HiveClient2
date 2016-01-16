@@ -654,6 +654,7 @@ L<https://github.com/dmorel/Thrift-API-HiveClient2>
 =head1 CONTRIBUTORS
 
 Burak Gürsoy (BURAK)
+
 Neil Bowers (NEILB)
 
 =cut

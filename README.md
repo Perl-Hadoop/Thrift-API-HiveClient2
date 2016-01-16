@@ -142,6 +142,7 @@ So we had to change the init script for hive-server2 to make it behave, adding
 # CONTRIBUTORS
 
 Burak Gürsoy (BURAK)
+
 Neil Bowers (NEILB)
 
 # AUTHOR
