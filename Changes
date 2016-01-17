@@ -73,3 +73,5 @@ Revision history for Thrift-API-HiveClient2
         Workaround for Thrift error messages (commented out, sigh)
         Added POD as README.md
 
+0.021   2016-01-17
+        Version up to solve cpan conflict after rejection

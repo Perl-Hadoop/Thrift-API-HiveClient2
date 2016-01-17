@@ -4,7 +4,7 @@ Thrift::API::HiveClient2 - Perl to HiveServer2 Thrift API wrapper
 
 # VERSION
 
-version 0.020
+version 0.021
 
 # METHODS
 
