@@ -19,29 +19,23 @@ use Thrift::BufferedTransport;
 # bug reports, will need to poke them directly.
 # see https://rt.cpan.org/Public/Bug/Display.html?id=86679
 
-# update: not indexable by cpan as it injects code in another class which is
-# not ours. plus the version check doesn't work either because of a missing
-# package declaration in the Thrift class file, see:
-# https://issues.apache.org/jira/browse/THRIFT-3551
-# https://issues.apache.org/jira/browse/THRIFT-3549 
+package Thrift::TException;
+use version;
 
-#package Thrift::TException;
-#use version;
-#
-#my $thrift_version = version->parse($Thrift::VERSION);
-#if ( $thrift_version >= version->parse('0.7.0') && $thrift_version <= version->parse('0.9.3') )
-#{
-#    eval <<'OVERLOAD';    #<<<
-#    use overload '""' => sub {
-#        return
-#            ref( $_[0] )
-#            . " error: "
-#            . ( $_[0]->{message} || 'empty message' )
-#            . " (code "
-#            . ( defined $_[0]->{code} ? $_[0]->{code} : 'undefined' ) . ")";
-#    };
-#OVERLOAD
-#}
+my $thrift_version = version->parse($Thrift::VERSION);
+if ( $thrift_version >= version->parse('0.7.0') && $thrift_version <= version->parse('0.9.0') )
+{
+    eval <<'OVERLOAD';    #<<<
+    use overload '""' => sub {
+        return
+            ref( $_[0] )
+            . " error: "
+            . ( $_[0]->{message} || 'empty message' )
+            . " (code "
+            . ( defined $_[0]->{code} ? $_[0]->{code} : 'undefined' ) . ")";
+    };
+OVERLOAD
+}
 
 #>>>
 
