@@ -13,34 +13,6 @@ use Thrift;
 use Thrift::Socket;
 use Thrift::BufferedTransport;
 
-# An unclean workaround to have the multiple "die new TException" statements
-# display something useful instead of a useless stringified hash reference.
-# Currently tied to version 0.7 to 0.9; Thrift people don't seem to read cpan
-# bug reports, will need to poke them directly.
-# see https://rt.cpan.org/Public/Bug/Display.html?id=86679
-
-package Thrift::TException;
-use version;
-
-my $thrift_version = version->parse($Thrift::VERSION);
-if ( $thrift_version >= version->parse('0.7.0') && $thrift_version <= version->parse('0.9.0') )
-{
-    eval <<'OVERLOAD';    #<<<
-    use overload '""' => sub {
-        return
-            ref( $_[0] )
-            . " error: "
-            . ( $_[0]->{message} || 'empty message' )
-            . " (code "
-            . ( defined $_[0]->{code} ? $_[0]->{code} : 'undefined' ) . ")";
-    };
-OVERLOAD
-}
-
-#>>>
-
-package Thrift::API::HiveClient2;
-
 # Protocol loading is done dynamically later.
 
 use Thrift::API::HiveClient2::TCLIService;
