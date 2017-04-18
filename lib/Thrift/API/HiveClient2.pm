@@ -2,6 +2,7 @@ package Thrift::API::HiveClient2;
 
 # ABSTRACT: Perl to HiveServer2 Thrift API wrapper
 
+use 5.010;
 use strict;
 use warnings;
 use Moo;
@@ -166,8 +167,14 @@ sub connect {
 has _session => (
     is  => 'rwp',
     isa => sub {
-        die "Session isn't a Thrift::API::HiveClient2::TOpenSessionResp"
-            if !blessed( $_[0] ) || !$_[0]->isa('Thrift::API::HiveClient2::TOpenSessionResp');
+        my($val) = @_;
+        if (   !blessed( $val )
+            || !$val->isa('Thrift::API::HiveClient2::TOpenSessionResp')
+        ) {
+            die sprintf "Session `%s` isn't a Thrift::API::HiveClient2::TOpenSessionResp",
+                $val // '[undefined]'
+            ;
+        }
     },
     lazy    => 1,
     builder => '_build_session',
@@ -200,8 +207,14 @@ sub _build_session {
 has _session_handle => (
     is  => 'rwp',
     isa => sub {
-        die "Session handle isn't a Thrift::API::HiveClient2::TSessionHandle"
-            if !blessed( $_[0] ) || !$_[0]->isa('Thrift::API::HiveClient2::TSessionHandle');
+        my($val) = @_;
+        if (   !blessed( $val )
+            || !$val->isa('Thrift::API::HiveClient2::TSessionHandle')
+        ) {
+            die sprintf "Session handle `%s` isn't a Thrift::API::HiveClient2::TSessionHandle",
+                            $val // '[undefined]'
+            ;
+        }
     },
     lazy    => 1,
     builder => '_build_session_handle',
@@ -215,14 +228,20 @@ sub _build_session_handle {
 has _operation => (
     is  => "rwp",
     isa => sub {
-        die "Operation isn't a Thrift::API::HiveClient2::T*Resp"
-            if defined $_[0]
+        my($val) = @_;
+        if ( defined $val
             && (
-            !blessed( $_[0] )
-            || (   !$_[0]->isa('Thrift::API::HiveClient2::TExecuteStatementResp')
-                && !$_[0]->isa('Thrift::API::HiveClient2::TGetColumnsResp')
-                && !$_[0]->isa('Thrift::API::HiveClient2::TGetTablesResp') )
-            );
+                !blessed( $val )
+                || (   !$val->isa('Thrift::API::HiveClient2::TExecuteStatementResp')
+                    && !$val->isa('Thrift::API::HiveClient2::TGetColumnsResp')
+                    && !$val->isa('Thrift::API::HiveClient2::TGetTablesResp')
+                    )
+            )
+        ) {
+            die "Operation `%s` isn't a Thrift::API::HiveClient2::T*Resp",
+                    $val // '[undefined]'
+            ;
+        }
     },
     lazy => 1,
 );
@@ -230,10 +249,17 @@ has _operation => (
 has _operation_handle => (
     is  => 'rwp',
     isa => sub {
-        die "Operation handle isn't a Thrift::API::HiveClient2::TOperationHandle"
-            if defined $_[0]
-            && ( !blessed( $_[0] )
-            || !$_[0]->isa('Thrift::API::HiveClient2::TOperationHandle') );
+        my($val) = @_;
+        if (
+            defined $val
+            && (   !blessed( $val )
+                || !$val->isa('Thrift::API::HiveClient2::TOperationHandle')
+                )
+        ) {
+            die sprintf "Operation handle isn't a Thrift::API::HiveClient2::TOperationHandle",
+                            $val // '[undefined]'
+            ;
+        }
     },
     lazy => 1,
 );
