@@ -492,7 +492,10 @@ sub DEMOLISH {
             )
         );
     }
-    $self->_transport->close;
+    
+    if ( $self->_transport ) {
+        $self->_transport->close;
+    }
 }
 
 # when the user calls a method on an object of this class, see if that method
