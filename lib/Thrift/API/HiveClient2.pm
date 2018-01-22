@@ -102,6 +102,15 @@ has sasl => (
     default => 0,
 );
 
+#Kerberos principal
+has principal => (
+    is    => 'rw',
+    default => sub {
+        my $self = shift;
+        return sprintf 'hive/%s@REALM.COM',$self->host;
+    }
+);
+
 # 1 hour default recv socket timeout. Increase for longer-running queries
 # called "timeout" for simplicity's sake, as this is how a user will experience
 # it: a time after which the Thrift stack will throw an exception if not
@@ -162,7 +171,7 @@ sub BUILD {
     if ( !$self->_transport ) {
         my $transport = Thrift::BufferedTransport->new( $self->_socket );
         if ( $self->_sasl ) {
-            $self->_set_transport( Thrift::SASL::Transport->new( $transport, $self->_sasl ) );
+            $self->_set_transport( Thrift::SASL::Transport->new( $transport, $self->_sasl, $self->principal ) );
         }
         else {
             $self->_set_transport($transport);
@@ -624,6 +633,9 @@ Starting with 0.014, support for secure clusters has been added thanks to
 L<Thrift::SASL::Transport>. This behaviour is set by passing sasl => 1 to the
 constructor. It has been tested with hive.server2.authentication = KERBEROS.
 It of course requires a valid credentials cache (kinit) or keytab.
+With this, kerberos principal also should be provided as part of constructor,
+principal => hive/_HOST@REALM.COM
+this value will be under hive.server2.authentication.kerberos.principal in hive-site.xml
 
 Starting with 0.015, other authentication methods are supported, and driven by
 the content of the sasl property. When built using sasl => 0 or sasl => 1, the
@@ -640,6 +652,20 @@ Authen::SASL, for instance:
     }
 
 Note that a server configured with NONE will happily accept the PLAIN method.
+
+=head1 DELEGATIONTOKEN
+Sasl object need to be created specifically if hiveClient2 is used with delegation token.
+    {
+      mechanism  => 'DIGEST-MD5',
+      callback   => {
+        canonuser => <bas65 encoded identifier extracted from delegation token>,
+        password  => <bas65 encoded password extracted from delegation token>,
+        realm     => 'default'
+      }
+    }
+This is used when hiveclient is called from oozie, where keytabs cannot be used.
+Oozie requests delegationtoken on behalf of hive if specified. This token is used for
+further authentication purposes.
 
 =head1 CAVEATS
 
