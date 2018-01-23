@@ -106,8 +106,8 @@ has sasl => (
 has principal => (
     is    => 'rw',
     default => sub {
-        my $self = shift;
-        return sprintf 'hive/%s@REALM.COM',$self->host;
+#      Usually in the format 'hive/{hostname}@REALM.COM';
+            return ''
     }
 );
 
@@ -171,7 +171,8 @@ sub BUILD {
     if ( !$self->_transport ) {
         my $transport = Thrift::BufferedTransport->new( $self->_socket );
         if ( $self->_sasl ) {
-            $self->_set_transport( Thrift::SASL::Transport->new( $transport, $self->_sasl, $self->principal ) );
+            my $debug = 0;
+            $self->_set_transport( Thrift::SASL::Transport->new( $transport, $self->_sasl, $debug, $self->principal ) );
         }
         else {
             $self->_set_transport($transport);
