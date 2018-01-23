@@ -7,6 +7,7 @@ require 5.6.0;
 use strict;
 use warnings;
 use Thrift;
+use Thrift::API::HiveClient2::Compat;
 
 package Thrift::API::HiveClient2::TProtocolVersion;
 use constant HIVE_CLI_SERVICE_PROTOCOL_V1 => 0;

@@ -7,7 +7,7 @@ require 5.6.0;
 use strict;
 use warnings;
 use Thrift;
-
+use Thrift::API::HiveClient2::Compat;
 use Thrift::API::HiveClient2::Types;
 
 # HELPER FUNCTIONS AND STRUCTURES

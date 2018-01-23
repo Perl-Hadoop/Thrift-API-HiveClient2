@@ -5,6 +5,7 @@ Revision history for Thrift-API-HiveClient2
         Adding support for delegation token authentication (ashwin konale)
         Don’t try to close undefined transport during global destruction (Dave Cardwel)
         Cleanup dead code.
+        Compatibility layer for the API changes.
 
 0.021   2016-01-17
         Version up to solve cpan conflict after rejection
