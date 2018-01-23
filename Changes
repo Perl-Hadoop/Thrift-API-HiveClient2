@@ -2,6 +2,9 @@ Revision history for Thrift-API-HiveClient2
 
 {{$NEXT}}
         Verbose type checks.
+        Adding support for delegation token authentication (ashwin konale)
+        Don’t try to close undefined transport during global destruction (Dave Cardwel)
+        Cleanup dead code.
 
 0.021   2016-01-17
         Version up to solve cpan conflict after rejection
