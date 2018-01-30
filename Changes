@@ -1,6 +1,8 @@
 Revision history for Thrift-API-HiveClient2
 
 {{$NEXT}}
+
+0.022 2018-01-30 BURAK
         Verbose type checks.
         Adding support for delegation token authentication (ashwin konale)
         Don’t try to close undefined transport during global destruction (Dave Cardwel)
