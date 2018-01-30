@@ -4,7 +4,7 @@ Thrift::API::HiveClient2 - Perl to HiveServer2 Thrift API wrapper
 
 # VERSION
 
-version 0.021
+version 0.022
 
 # METHODS
 
@@ -13,10 +13,30 @@ version 0.021
 Initialize the client object with the Hive server parameters
 
     my $client = Thrift::API::HiveClient2->new(
-        host    => <host name or IP, defaults to localhost>,
-        port    => <port, defaults to 10000>,
-        timeout => <seconds timeout, defaults to 1 hour>,
+        host    => $hive_host,
+        port    => $hive_port,
+        timeout => $seconds,
     );
+
+### host
+
+Host name or IP, defaults to localhost.
+
+### port
+
+Hive port, defaults to 10000.
+
+### principal
+
+Kerberos principal. Default is not set. See the ["WARNING"](#warning) section.
+
+### sasl
+
+Enables authentication. Default is not set. See the ["WARNING"](#warning) section.
+
+### timeout
+
+Seconds timeout, defaults to 1 hour.
 
 ## connect
 
@@ -109,6 +129,9 @@ Starting with 0.014, support for secure clusters has been added thanks to
 [Thrift::SASL::Transport](https://metacpan.org/pod/Thrift::SASL::Transport). This behaviour is set by passing sasl => 1 to the
 constructor. It has been tested with hive.server2.authentication = KERBEROS.
 It of course requires a valid credentials cache (kinit) or keytab.
+With this, kerberos principal also should be provided as part of constructor,
+principal => hive/\_HOST@REALM.COM
+this value will be under hive.server2.authentication.kerberos.principal in hive-site.xml
 
 Starting with 0.015, other authentication methods are supported, and driven by
 the content of the sasl property. When built using sasl => 0 or sasl => 1, the
@@ -125,6 +148,20 @@ Authen::SASL, for instance:
     }
 
 Note that a server configured with NONE will happily accept the PLAIN method.
+
+# DELEGATIONTOKEN
+Sasl object need to be created specifically if hiveClient2 is used with delegation token.
+    {
+      mechanism  => 'DIGEST-MD5',
+      callback   => {
+        canonuser => &lt;bas65 encoded identifier extracted from delegation token>,
+        password  => &lt;bas65 encoded password extracted from delegation token>,
+        realm     => 'default'
+      }
+    }
+This is used when hiveclient is called from oozie, where keytabs cannot be used.
+Oozie requests delegationtoken on behalf of hive if specified. This token is used for
+further authentication purposes.
 
 # CAVEATS
 
@@ -147,11 +184,11 @@ Neil Bowers (NEILB)
 
 # AUTHOR
 
-David Morel &lt;david.morel@amakuru.net>
+David Morel <david.morel@amakuru.net>
 
 # COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2015 by David Morel & Booking.com. Portions are (c) R.Scaffidi, Thrift files are (c) Apache Software Foundation..
+This software is Copyright (c) 2015 by David Morel & Booking.com. Portions are (c) R.Scaffidi, Thrift files are (c) Apache Software Foundation.
 
 This is free software, licensed under:
 
