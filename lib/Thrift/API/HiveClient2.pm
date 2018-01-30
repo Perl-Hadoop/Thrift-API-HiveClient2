@@ -69,13 +69,10 @@ has sasl => (
     default => 0,
 );
 
-#Kerberos principal
+# Kerberos principal
+# Usually in the format 'hive/{hostname}@REALM.COM';
 has principal => (
-    is    => 'rw',
-    default => sub {
-#      Usually in the format 'hive/{hostname}@REALM.COM';
-            return ''
-    }
+    is => 'rw',
 );
 
 # 1 hour default recv socket timeout. Increase for longer-running queries
@@ -524,6 +521,8 @@ __END__
 
 =encoding utf8
 
+=for Pod::Coverage BUILD DEMOLISH
+
 =head1 METHODS
 
 =head2 new
@@ -531,10 +530,30 @@ __END__
 Initialize the client object with the Hive server parameters
 
     my $client = Thrift::API::HiveClient2->new(
-        host    => <host name or IP, defaults to localhost>,
-        port    => <port, defaults to 10000>,
-        timeout => <seconds timeout, defaults to 1 hour>,
+        host    => $hive_host,
+        port    => $hive_port,
+        timeout => $seconds,
     );
+
+=head3 host
+
+Host name or IP, defaults to localhost.
+
+=head3 port
+
+Hive port, defaults to 10000.
+
+=head3 principal
+
+Kerberos principal. Default is not set. See the L</WARNING> section.
+
+=head3 sasl
+
+Enables authentication. Default is not set. See the L</WARNING> section.
+
+=head3 timeout
+
+Seconds timeout, defaults to 1 hour.
 
 =head2 connect
 
