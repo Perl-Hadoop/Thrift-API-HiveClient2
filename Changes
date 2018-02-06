@@ -1,6 +1,8 @@
 Revision history for Thrift-API-HiveClient2
 
 {{$NEXT}}
+
+0.023 2018-02-06 BURAK
 	Distro fix for prereqs.
 
 0.022 2018-01-30 BURAK
