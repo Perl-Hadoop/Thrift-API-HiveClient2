@@ -1,6 +1,7 @@
 Revision history for Thrift-API-HiveClient2
 
 {{$NEXT}}
+	Distro fix for prereqs.
 
 0.022 2018-01-30 BURAK
         Verbose type checks.
