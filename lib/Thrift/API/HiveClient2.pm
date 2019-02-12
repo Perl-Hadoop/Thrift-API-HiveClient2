@@ -225,6 +225,7 @@ has _session_handle => (
     },
     lazy    => 1,
     builder => '_build_session_handle',
+    predicate => '_has_session_handle',
 );
 
 sub _build_session_handle {
@@ -484,7 +485,7 @@ sub DEMOLISH {
 
     $self->_cleanup_previous_operation;
 
-    if ( $self->_session_handle ) {
+    if ( $self->_has_session_handle ) {
         $self->_client->CloseSession(
             Thrift::API::HiveClient2::TCloseSessionReq->new(
                 { sessionHandle => $self->_session_handle, }
