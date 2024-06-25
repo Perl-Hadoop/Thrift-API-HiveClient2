@@ -4,7 +4,7 @@ Thrift::API::HiveClient2 - Perl to HiveServer2 Thrift API wrapper
 
 # VERSION
 
-version 0.024
+version 0.025
 
 # METHODS
 
@@ -33,6 +33,10 @@ Kerberos principal. Default is not set. See the ["WARNING"](#warning) section.
 ### sasl
 
 Enables authentication. Default is not set. See the ["WARNING"](#warning) section.
+
+### use_ssl
+
+uses Thrift::SSLSocket if enabled by setting 1. By default set to 0 and uses Thrift::Socket
 
 ### timeout
 
