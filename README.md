@@ -34,7 +34,7 @@ Kerberos principal. Default is not set. See the ["WARNING"](#warning) section.
 
 Enables authentication. Default is not set. See the ["WARNING"](#warning) section.
 
-### use_ssl
+### use\_ssl
 
 uses Thrift::SSLSocket if enabled by setting 1. By default set to 0 and uses Thrift::Socket
 
@@ -130,7 +130,7 @@ disabled on HiveServer2 by setting this property in your
     </property>
 
 Starting with 0.014, support for secure clusters has been added thanks to
-[Thrift::SASL::Transport](https://metacpan.org/pod/Thrift::SASL::Transport). This behaviour is set by passing sasl => 1 to the
+[Thrift::SASL::Transport](https://metacpan.org/pod/Thrift%3A%3ASASL%3A%3ATransport). This behaviour is set by passing sasl => 1 to the
 constructor. It has been tested with hive.server2.authentication = KERBEROS.
 It of course requires a valid credentials cache (kinit) or keytab.
 With this, kerberos principal also should be provided as part of constructor,
@@ -140,7 +140,7 @@ this value will be under hive.server2.authentication.kerberos.principal in hive-
 Starting with 0.015, other authentication methods are supported, and driven by
 the content of the sasl property. When built using sasl => 0 or sasl => 1, the
 behaviour is unchanged. When passed a hashref of arguments that follow the
-[Authen::SASL](https://metacpan.org/pod/Authen::SASL) syntax for object creation, it is passed directly to
+[Authen::SASL](https://metacpan.org/pod/Authen%3A%3ASASL) syntax for object creation, it is passed directly to
 Authen::SASL, for instance:
 
     {
