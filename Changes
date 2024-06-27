@@ -1,6 +1,7 @@
 Revision history for Thrift-API-HiveClient2
 
 {{$NEXT}}
+    Enable SSL support (Merge pull request #12 from Raj-18110/enable-ssl)
 
 0.024 2019-02-12 BURAK
     Include the patch by Alexey Lebedeff
