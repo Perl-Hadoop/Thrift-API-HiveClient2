@@ -12,6 +12,7 @@ use List::MoreUtils 'zip';
 
 use Thrift;
 use Thrift::Socket;
+use Thrift::SSLSocket;
 use Thrift::BufferedTransport;
 
 # Protocol loading is done dynamically later.
@@ -65,6 +66,11 @@ has port => (
     default => sub {10_000},
 );
 has sasl => (
+    is      => 'ro',
+    default => 0,
+);
+
+has use_ssl => (
     is      => 'ro',
     default => 0,
 );
@@ -126,7 +132,16 @@ sub _set_sasl {
 sub BUILD {
     my $self = shift;
 
-    $self->_set_socket( Thrift::Socket->new( $self->host, $self->port ) )
+    my $thrift_socket;
+    
+    if( $self->use_ssl ) {
+     $thrift_socket = Thrift::SSLSocket->new( $self->host, $self->port );
+    }
+    else {
+     $thrift_socket = Thrift::Socket->new( $self->host, $self->port );
+    }
+
+    $self->_set_socket( $thrift_socket )
         unless $self->_socket;
     $self->_socket->setRecvTimeout( $self->timeout * 1000 );
 
@@ -551,6 +566,10 @@ Kerberos principal. Default is not set. See the L</WARNING> section.
 =head3 sasl
 
 Enables authentication. Default is not set. See the L</WARNING> section.
+
+=head3 use_ssl
+
+uses Thrift::SSLSocket if enabled by setting 1. By default set to 0 and uses Thrift::Socket
 
 =head3 timeout
 
