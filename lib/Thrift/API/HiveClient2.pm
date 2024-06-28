@@ -12,7 +12,6 @@ use List::MoreUtils 'zip';
 
 use Thrift;
 use Thrift::Socket;
-use Thrift::SSLSocket;
 use Thrift::BufferedTransport;
 
 # Protocol loading is done dynamically later.
@@ -134,12 +133,14 @@ sub BUILD {
 
     my $thrift_socket;
     
+    my $transport_class = 'Thrift::Socket';
     if( $self->use_ssl ) {
-     $thrift_socket = Thrift::SSLSocket->new( $self->host, $self->port );
+        require Thrift::SSLSocket;
+        $transport_class = 'Thrift::SSLSocket';
     }
-    else {
-     $thrift_socket = Thrift::Socket->new( $self->host, $self->port );
-    }
+
+    $thrift_socket = $transport_class->new( $self->host, $self->port );
+
 
     $self->_set_socket( $thrift_socket )
         unless $self->_socket;

@@ -1,6 +1,8 @@
 Revision history for Thrift-API-HiveClient2
 
 {{$NEXT}}
+    Move Thrift::SSLSocket loading to runtime.
+    IO::Socket::SSL is now a dependency.
 
 0.025 2024-06-27 BURAK
     Enable SSL support (Merge pull request #12 from Raj-18110/enable-ssl)
